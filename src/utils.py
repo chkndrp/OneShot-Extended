@@ -161,10 +161,20 @@ def restoreProcesses():
         if not cmdline:
             logger.warning(f'Cannot restore {pname} (PID {pid}): process details are unavailable')
             continue
+        if not isinstance(cmdline, (list, tuple)) or not all(isinstance(arg, str) for arg in cmdline):
+            logger.warning(f'Cannot restore {pname} (PID {pid}): invalid command format')
+            continue
+
+        resolved_executable = which(cmdline[0])
+        if not resolved_executable:
+            logger.warning(f'Cannot restore {pname} (PID {pid}): executable not found: {cmdline[0]}')
+            continue
+
+        safe_cmdline = list(cmdline)
+        safe_cmdline[0] = resolved_executable
 
         try:
-            subprocess.Popen(cmdline,
-                executable=executable,
+            subprocess.Popen(safe_cmdline,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL
             )
