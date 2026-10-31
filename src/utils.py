@@ -60,7 +60,7 @@ def _getInterferingProcesses():
 
     return interfering_pids
 
-def _saveKilledProcesses(processes: list[tuple[int, str, str]]):
+def _saveKilledProcesses(processes: list[tuple[int, str, list[str], int, str]]):
     """Save killed process information to a file for restoration."""
 
     if not processes:
@@ -74,16 +74,26 @@ def _saveKilledProcesses(processes: list[tuple[int, str, str]]):
     except IOError as e:
         logger.error(f"Failed to save killed processes: {e}")
 
-def _getProcessCommand(pid: int) -> str:
-    """Get the command line of a process from /proc."""
+def _getProcessInfo(pid: int) -> tuple[list[str], int, str]:
+    """Get a process's arguments, UID, and executable from procfs"""
 
-    try:
-        with open(f'/proc/{pid}/cmdline', 'r', encoding='utf-8') as f:
-            cmdline = f.read().replace('\0', ' ').strip()
+    with open(f'/proc/{pid}/cmdline', 'rb') as f:
+        cmdline = f.read().split(b'\0')
 
-            return cmdline
-    except OSError:
-        return ''
+    if cmdline and not cmdline[-1]:
+        cmdline.pop()
+
+    cmdline = [os.fsdecode(arg) for arg in cmdline]
+    if not cmdline:
+        raise ValueError('Process command line is unavailable')
+
+    with open(f'/proc/{pid}/status', 'r', encoding='utf-8') as f:
+        uid_line = next(line for line in f if line.startswith('Uid:'))
+
+    uid = int(uid_line.split()[1])
+    executable = os.readlink(f'/proc/{pid}/exe')
+
+    return cmdline, uid, executable
 
 def checkRunningProcesses(interface: str):
     """Detect and warn about other processes actively using the generic netlink subsystem."""
@@ -103,14 +113,19 @@ def killInterfering():
     if interfering_pids:
         for pid, pname in interfering_pids:
             try:
-                cmdline = _getProcessCommand(pid)
+                cmdline, uid, executable = _getProcessInfo(pid)
+
                 os.kill(pid, 15)
                 logger.warning(f"Terminated process {pname} (PID {pid})")
-                killed_processes.append((pid, pname, cmdline))
+                killed_processes.append((
+                    pid, pname,
+                    cmdline, uid,
+                    executable
+                ))
 
                 # Give time to release locks
                 time.sleep(1.5)
-            except OSError as e:
+            except (OSError, ValueError) as e:
                 logger.error(f"Failed to terminate {pname} (PID {pid}): {e}")
 
         _saveKilledProcesses(killed_processes)
@@ -127,17 +142,30 @@ def restoreProcesses():
         with open(killed_file, 'r', encoding='utf-8') as f:
             killed_processes = json.load(f)
     except (IOError, json.JSONDecodeError) as e:
-        logger.error(f"Failed to read killed processes file: {e}")
+        logger.error(f'Failed to read killed processes file: {e}')
         return
 
-    for pid, pname, cmdline in killed_processes:
+    for process in killed_processes:
+        try:
+            pid, pname, cmdline, uid, executable = process
+        except (TypeError, ValueError):
+            logger.warning('Skipped process: saved record does not contain its original UID')
+            continue
+
+        if uid != 0 or uid is False:
+            logger.warning(
+                f'Skipped {pname} (PID {pid}, UID {uid}); '
+                'restarting it as root could elevate privileges'
+            )
+            continue
         if not cmdline:
-            logger.warning(f"Cannot restore {pname} (PID {pid}): command line not available")
+            logger.warning(f'Cannot restore {pname} (PID {pid}): process details are unavailable')
             continue
 
         try:
             subprocess.Popen(cmdline,
-                shell=True, stdout=subprocess.DEVNULL,
+                executable=executable,
+                stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL
             )
             logger.info(f"Restored process {pname}")
