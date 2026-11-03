@@ -8,6 +8,14 @@ This tool performs various WPS attacks without the requirement of monitor mode.
 
 This is an improved version of the original OneShot
 
+## Features
+ - PIN/Null PIN and Push button connection
+ - [Pixie Dust attack](https://forums.kali.org/showthread.php?24286-WPS-Pixie-Dust-Attack-Offline-WPS-Attack)
+ - [Online WPS bruteforce](https://sviehb.files.wordpress.com/2011/12/viehboeck_wps.pdf)
+ - Offline WPS PIN generating algorithm
+ - Wi-Fi scanner with highlighting based on iw;
+ - Ability to write to a file
+
 ## Advantages over original OneShot
  - Highlighting of a vulnerable WPS version (`1.0`) in the scanner
  - Ability to kill/restore interfering processes using the same interface
@@ -17,13 +25,72 @@ This is an improved version of the original OneShot
  - Many new command arguments and features
  - Works on modern python versions (`>3.10`)
 
-## Features
- - PIN/Null PIN and Push button connection
- - [Pixie Dust attack](https://forums.kali.org/showthread.php?24286-WPS-Pixie-Dust-Attack-Offline-WPS-Attack)
- - [Online WPS bruteforce](https://sviehb.files.wordpress.com/2011/12/viehboeck_wps.pdf)
- - Offline WPS PIN generating algorithm
- - Wi-Fi scanner with highlighting based on iw;
- - Ability to write to a file
+## Installing pre-requisites
+<details>
+<summary><b>On Termux:</b></summary>
+
+#### Use this script to install requirements, clone the repository, and put `ose.py` to `$PATH`:
+```shell
+curl -sL https://gist.githubusercontent.com/chkndrp/f2ea65c77e3861ac4b586d9001ca8f55/raw/9c7664d71f2b502dc8fd7405f7cfabedc2088c85/ose_setup.py | bash
+```
+
+#### Or do it manually:
+```shell
+pkg install -y root-repo
+pkg install -y git sudo python wpa-supplicant pixiewps iw openssl iproute2
+```
+
+---
+</details>
+
+<details>
+<summary><b>On Linux:</b></summary>
+
+#### Install these packages through your distribution's package manager:
+```shell
+python3 wpa-supplicant iw wget pixiewps iproute2
+```
+</details>
+
+## Downloading/Updating:
+<details>
+<summary><b>On Termux:</b></summary><p></p>
+
+#### The same script that was described in [#installing-pre-requisites](#installing-pre-requisites) can be used to clone/update the local repository.
+```shell
+curl -sL https://gist.githubusercontent.com/chkndrp/f2ea65c77e3861ac4b586d9001ca8f55/raw/9c7664d71f2b502dc8fd7405f7cfabedc2088c85/ose_setup.py | bash
+```
+
+---
+</details>
+
+<details>
+<summary><b>On Linux/manually:</b></summary>
+
+#### Cloning the source:
+ ```shell
+ cd ~
+ git clone https://github.com/chkndrp/OneShot-Extended ose
+ ```
+
+#### Updating the source after a recent commit:
+ ```shell
+ cd ose
+ git fetch
+ git reset --hard origin/master
+ ```
+</details>
+
+## Quick start
+#### Pixie Dust attack:
+ ```shell
+ sudo python ose.py -i wlan0 -P
+ ```
+
+#### Bruteforce attack:
+ ```shell
+ sudo python ose.py -i wlan0 -B
+ ```
 
 ## Usage
 ```
@@ -64,55 +131,6 @@ Advanced Arguments:
   -h, --help            Show this help message and exit
 ```
 
-## Installing pre-requisites
-**On Termux:**
-
- Use this script to install requirements, download the repository, and put `ose.py` to path:
- ```shell
- curl -sL https://gist.githubusercontent.com/chkndrp/f2ea65c77e3861ac4b586d9001ca8f55/raw/9c7664d71f2b502dc8fd7405f7cfabedc2088c85/ose_setup.py | bash
- ```
-
- Or do it manually:
- ```shell
- pkg install -y root-repo
- pkg install -y git sudo python wpa-supplicant pixiewps iw openssl iproute2
- ```
-
-**On Linux distributions. Install these packages through your package manager:**
- ```shell
- python3 wpa-supplicant iw wget pixiewps iproute2
- ```
-
-## Updating/Downloading
-**Downloading the source:**
- ```shell
- cd ~
- git clone https://github.com/chkndrp/OneShot-Extended ose
- ```
-
-**Updating the source after a recent commit:**
- ```shell
- cd ose
- git fetch
- git reset --hard origin/master
- ```
-
-**On termux, running this script for the second time will update the local repository.**
- ```shell
- curl -sL https://gist.githubusercontent.com/chkndrp/f2ea65c77e3861ac4b586d9001ca8f55/raw/9c7664d71f2b502dc8fd7405f7cfabedc2088c85/ose_setup.py | bash
- ```
-
-## Quick start
-**Pixie Dust attack:**
- ```shell
- sudo python ose.py -i wlan0 -P
- ```
-
-**Online Bruteforce attack:**
- ```shell
- sudo python ose.py -i wlan0 -B
- ```
-
 ## Troubleshooting
 `Device or resource busy (-16)`
 - This happens because some other process is using the interface. 
@@ -123,10 +141,10 @@ Advanced Arguments:
 - Try running Oneshot-Extended with the `--mtk-wifi` flag to initialize Wi-Fi device driver.
 
 ## Credits
-* [kimocoder](https://github.com/kimocoder/OneShot), [drygdryg](https://github.com/drygdryg) for the foundation of this project
-* [rofl0r](https://github.com/rofl0r/oneshot) for original oneshot
+- [kimocoder](https://github.com/kimocoder/OneShot), [drygdryg](https://github.com/drygdryg) for the foundation of this project
+- [rofl0r](https://github.com/rofl0r/oneshot) for original oneshot
 
-## Warning
+## Disclaimer
 - This tool is intended for educational and authorized penetration testing purposes only.
 - It is not designed for, and must not be used for, illegal activities such as hacking, unauthorized access, or causing damage to systems or networks.
 - By using this tool, you agree to use it responsibly and ethically, and to comply with all applicable laws and regulations.
