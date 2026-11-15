@@ -4,7 +4,7 @@
 ▙▌▌▌▙▖▄▌▌▌▙▌▐▖  ▙▖▞▖▐▖▙▖▌▌▙▌▙▖▙▌
 ```
 
-This tool performs various WPS attacks without the requirement of monitor mode.
+This tool performs various WPS attacks without the requirement of monitor mode, or any python dependencies.
 
 This is an improved version of the original OneShot
 
