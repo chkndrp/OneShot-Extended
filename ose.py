@@ -17,8 +17,8 @@ import os
 import sys
 
 # pylint: disable=wrong-import-position
-if sys.version_info < (3, 10):
-    sys.exit('Python 3.10 or higher is required to run this script.')
+if sys.version_info < (3, 11):
+    sys.exit('Python 3.11 or higher is required to run this script.')
 
 from shutil import which
 from pathlib import Path

@@ -23,7 +23,7 @@ This is an improved version of the original OneShot
  - Improved Scanner reliability (retries, `up` detection, `lock` detection)
  - Improved Android support
  - Many new command arguments and features
- - Works on modern python versions (`>3.10`)
+ - Works on modern python versions (`>3.11`)
 
 ## Installing pre-requisites
 <details>
